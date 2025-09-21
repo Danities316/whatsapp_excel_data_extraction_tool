@@ -212,7 +212,17 @@ mongoose.connect(process.env.MONGODB_URI)
             }
 
             if (bridgeMsg) {
-                await msg.reply(bridgeMsg);
+                const brdgeMsgResponse = 
+`📦 *Company Name:* ${companyData.COMPANY}\n\n` +
+`🛠️ *Services Offered:* ${companyData.SERVICES}\n\n` +
+`📍 *Service Area:* ${companyData.COVERAGE}\n\n` +
+`🌐 *How to Find Them:*\n` +
+`• Search their name on *Google*\n` +
+`• Or look them up on *Facebook*\n\n` +
+`⚠️ *Note:* Detailed contact information is available only for verified partners on our platform.\n\n` +
+`🚚 Great news! In the next 30 seconds, we'll share one of our top recommended moving service providers to help with your move.`;
+
+                await msg.reply(brdgeMsgResponse);
                 setTimeout(async () => {
                     await msg.reply(botResponse);
                 }, 30000);
