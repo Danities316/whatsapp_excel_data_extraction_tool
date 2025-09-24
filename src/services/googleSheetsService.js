@@ -3,22 +3,38 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const REQUIRED_FIELDS = ['ID', 'BRIDGE MESSAGE', 'COMPANY', 'OWNER / DRIVER', 'LANGUAGES - A', 'LANGUAGES - B', 'RATE & SERVICES  ( I )', 'RATE & SERVICES  ( II )', 'RATE & SERVICES  ( III )', 'RATE & SERVICES  ( IV )', 'VEHICLE MODEL', 'LICENSED', 'COVERAGE', 'SERVICES', 'CUSTOM OFFERS', 'AVAILABILITY ', 'CONTACT METHOD', 'THANK YOU MESSAGE'];
+const REQUIRED_FIELDS = ['ID', 'BRIDGE MESSAGE', 'COMPANY IMAGE', 'COMPANY', 'OWNER / DRIVER', 'LANGUAGES - A', 'LANGUAGES - B', 'RATE & SERVICES  ( I )', 'RATE & SERVICES  ( II )', 'RATE & SERVICES  ( III )', 'RATE & SERVICES  ( IV )', 'VEHICLE MODEL', 'LICENSED', 'COVERAGE', 'SERVICES', 'CUSTOM OFFERS', 'AVAILABILITY ', 'CONTACT METHOD', 'THANK YOU MESSAGE'];
 
 /**
  * Validates a single company data object to ensure it has all required fields.
  * @param {object} company - The company object to validate.
  * @returns {boolean} 
  */
+// function validateCompanyData(company) {
+//     for (const field of REQUIRED_FIELDS) {
+//         if (!company[field]) {
+//             console.warn(`Skipping invalid company row. Missing field: '${field}'. Data received:`, company);
+//             return false;
+//         }
+//     }
+//     return true;
+// }
+
 function validateCompanyData(company) {
+    if (company['ID'] && company['BRIDGE MESSAGE'] && !company['COMPANY']) {
+        // console.warn(`company data found (ID). Data:`, company);
+        return true;
+    }
     for (const field of REQUIRED_FIELDS) {
         if (!company[field]) {
             console.warn(`Skipping invalid company row. Missing field: '${field}'. Data received:`, company);
             return false;
         }
     }
+
     return true;
 }
+
 
 /**
  * fetch data for a single company from Google Sheets.
@@ -49,7 +65,7 @@ async function getCompanyData(companyId) {
         }
 
         const companyRow = rows.slice(1).find(r => r[idIndex] === companyId);
-        console.error(`Company row found: ${companyRow}`);
+        // console.error(`Company row found: ${companyRow}`);
         
         if (!companyRow) {
             console.error(`Company with ID "${companyId}" not found.`);
