@@ -4,7 +4,7 @@ const { setTempData, getTempData } = require('../services/tempStoreService.js');
 
 const router = express.Router();
 
-const BOT_PHONE = process.env.BOT_PHONE || ''; // Move to .env
+const BOT_PHONE = process.env.BOT_PHONE || ''; 
 
 // Helper function to create session key for phone correlation
 function createSessionKey(sessionId) {
@@ -38,16 +38,13 @@ router.post('/initiate-chat',
         companyId,
         imageUrl,
         timestamp,
-        sessionId
+        sessionId,
+        status: 'pending' 
       };
       
-      // Ensure we store as string for consistency
-      const dataToStore = JSON.stringify(sessionData);
-      console.log('Storing session data:', { sessionId, data: sessionData });
-      
       // Store session data with 10-minute expiry (600 seconds)
-      await setTempData(createSessionKey(sessionId), dataToStore, 600);
-      
+      await setTempData(createSessionKey(sessionId), sessionData, 600);
+      console.log('Storing session data:', { sessionId, data: sessionData });
       // Clean user message without any session ID
       const userMessage = "Hello, I am interested in your services for a move.";
       
@@ -57,7 +54,7 @@ router.post('/initiate-chat',
       res.status(200).json({
         message: 'WhatsApp chat link generated successfully.',
         waLink,
-        sessionId // Return sessionId for debugging purposes only
+        sessionId 
       });
     } catch (error) {
       console.error('Error in /api/initiate-chat:', error);
@@ -65,6 +62,38 @@ router.post('/initiate-chat',
     }
   }
 );
+
+// =================================================================
+// GET /chat-redirect
+// Validates sessionId and redirects to a clean WhatsApp chat link
+// =================================================================
+router.get('/chat-redirect', async (req, res) => {
+  try {
+    const { sessionId } = req.query;
+
+    if (!sessionId) {
+      return res.status(400).send('Missing sessionId');
+    }
+
+    // Validate session exists
+    const sessionKey = `session_${sessionId}`;
+    const sessionData = await getTempData(sessionKey);
+
+    if (!sessionData) {
+      return res.status(400).send('Invalid or expired session.');
+    }
+
+    // Generate clean WhatsApp link (no sessionId in text!)
+    const userMessage = "Hello, I am interested in your services.";
+    const waLink = `https://wa.me/${BOT_PHONE.replace('+', '').replace(/\s/g, '')}?text=${encodeURIComponent(userMessage)}`;
+
+    // Redirect user to WhatsApp
+    return res.redirect(waLink);
+  } catch (error) {
+    console.error('Error in /chat-redirect:', error);
+    return res.status(500).send('Something went wrong.');
+  }
+});
 
 // Optional: Endpoint to check session status (for debugging)
 router.get('/session-status/:sessionId', async (req, res) => {

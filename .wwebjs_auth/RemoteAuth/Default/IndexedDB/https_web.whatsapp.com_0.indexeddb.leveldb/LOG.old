@@ -1,54 +1,7 @@
-2025/09/24-16:30:25.552 59e0 Reusing MANIFEST C:\Users\HP\OneDrive\Desktop\whatsapp-bot-2025\whatsapp-bot-project\.wwebjs_auth\RemoteAuth\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2025/09/24-16:30:25.574 59e0 Recovering log #1500
-2025/09/24-16:30:25.768 59e0 Reusing old log C:\Users\HP\OneDrive\Desktop\whatsapp-bot-2025\whatsapp-bot-project\.wwebjs_auth\RemoteAuth\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/001500.log 
-2025/09/24-16:30:26.832 59e0 Level-0 table #1518: started
-2025/09/24-16:30:26.859 59e0 Level-0 table #1518: 651583 bytes OK
-2025/09/24-16:30:26.864 59e0 Delete type=0 #1500
-2025/09/24-16:30:26.866 59e0 Manual compaction at level-0 from '\x00(\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00)\x00\x00\x00' @ 0 : 0; will stop at '\x00(\x00\x00\x05' @ 4922997 : 1
-2025/09/24-16:30:26.866 59e0 Compacting 1@0 + 0@1 files
-2025/09/24-16:30:26.903 59e0 Generated table #1519@0: 9468 keys, 238276 bytes
-2025/09/24-16:30:26.910 59e0 Generated table #1520@0: 576 keys, 14817 bytes
-2025/09/24-16:30:26.910 59e0 Compacted 1@0 + 0@1 files => 253093 bytes
-2025/09/24-16:30:26.913 59e0 compacted to: files[ 0 2 21 0 0 0 0 ]
-2025/09/24-16:30:26.914 59e0 Delete type=2 #1518
-2025/09/24-16:30:26.917 3390 Manual compaction at level-0 from '\x00(\x00\x00\x05' @ 4922997 : 1 .. '\x00)\x00\x00\x00' @ 0 : 0; will stop at (end)
-2025/09/24-16:30:33.137 858 Compacting 1@1 + 10@2 files
-2025/09/24-16:30:33.366 858 Generated table #1521@1: 74637 keys, 2239987 bytes
-2025/09/24-16:30:33.539 858 Generated table #1522@1: 30326 keys, 2187378 bytes
-2025/09/24-16:30:33.942 858 Generated table #1523@1: 52230 keys, 2216432 bytes
-2025/09/24-16:30:34.191 858 Generated table #1524@1: 4833 keys, 2155499 bytes
-2025/09/24-16:30:34.329 858 Generated table #1525@1: 2074 keys, 2158073 bytes
-2025/09/24-16:30:34.456 858 Generated table #1526@1: 1632 keys, 2180932 bytes
-2025/09/24-16:30:34.615 858 Generated table #1527@1: 10761 keys, 2162811 bytes
-2025/09/24-16:30:35.012 858 Generated table #1528@1: 30852 keys, 2237576 bytes
-2025/09/24-16:30:35.415 858 Generated table #1529@1: 25181 keys, 2292389 bytes
-2025/09/24-16:30:35.477 858 Generated table #1530@1: 5694 keys, 1032560 bytes
-2025/09/24-16:30:35.477 858 Compacted 1@1 + 10@2 files => 20863637 bytes
-2025/09/24-16:30:35.479 858 compacted to: files[ 0 1 21 0 0 0 0 ]
-2025/09/24-16:30:35.480 858 Delete type=2 #1498
-2025/09/24-16:30:35.480 858 Delete type=2 #1499
-2025/09/24-16:30:35.480 858 Delete type=2 #1502
-2025/09/24-16:30:35.480 858 Delete type=2 #1503
-2025/09/24-16:30:35.481 858 Delete type=2 #1504
-2025/09/24-16:30:35.481 858 Delete type=2 #1505
-2025/09/24-16:30:35.481 858 Delete type=2 #1506
-2025/09/24-16:30:35.481 858 Delete type=2 #1507
-2025/09/24-16:30:35.481 858 Delete type=2 #1508
-2025/09/24-16:30:35.481 858 Delete type=2 #1509
-2025/09/24-16:30:35.481 858 Delete type=2 #1519
-2025/09/24-16:31:26.617 3390 Compacting 1@1 + 6@2 files
-2025/09/24-16:31:26.962 3390 Generated table #1531@1: 93414 keys, 2242860 bytes
-2025/09/24-16:31:27.358 3390 Generated table #1532@1: 114618 keys, 2268327 bytes
-2025/09/24-16:31:27.800 3390 Generated table #1533@1: 114738 keys, 2270761 bytes
-2025/09/24-16:31:28.224 3390 Generated table #1534@1: 114648 keys, 2269546 bytes
-2025/09/24-16:31:28.497 3390 Generated table #1535@1: 114826 keys, 2268711 bytes
-2025/09/24-16:31:28.635 3390 Generated table #1536@1: 57001 keys, 1132986 bytes
-2025/09/24-16:31:28.635 3390 Compacted 1@1 + 6@2 files => 12453191 bytes
-2025/09/24-16:31:28.638 3390 compacted to: files[ 0 0 21 0 0 0 0 ]
-2025/09/24-16:31:28.638 3390 Delete type=2 #1510
-2025/09/24-16:31:28.638 3390 Delete type=2 #1511
-2025/09/24-16:31:28.638 3390 Delete type=2 #1512
-2025/09/24-16:31:28.638 3390 Delete type=2 #1513
-2025/09/24-16:31:28.638 3390 Delete type=2 #1514
-2025/09/24-16:31:28.638 3390 Delete type=2 #1515
-2025/09/24-16:31:28.638 3390 Delete type=2 #1520
+2025/09/26-18:47:14.962 b68 Reusing MANIFEST C:\Users\HP\OneDrive\Desktop\whatsapp-bot-2025\whatsapp-bot-project\.wwebjs_auth\RemoteAuth\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/09/26-18:47:14.986 b68 Recovering log #96
+2025/09/26-18:47:15.098 b68 Reusing old log C:\Users\HP\OneDrive\Desktop\whatsapp-bot-2025\whatsapp-bot-project\.wwebjs_auth\RemoteAuth\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000096.log 
+2025/09/26-18:47:15.098 b68 Delete type=2 #93
+2025/09/26-18:47:15.098 b68 Delete type=2 #94
+2025/09/26-18:47:15.098 b68 Delete type=2 #97
+2025/09/26-18:47:16.352 1ab0 Manual compaction at level-0 from '\x00\x1e\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x1f\x00\x00\x00' @ 0 : 0; will stop at (end)

@@ -14,7 +14,7 @@ const redisClient = createClient({
 });
 
 
-//upstash commectiom
+//upstash connection
 // const redisClient = createClient({
 //   url: process.env.REDIS_URL,
 //   // token: process.env.UPSTASH_REDIS_REST_TOKEN,
@@ -42,4 +42,3 @@ redisClient.on('error', err => console.error('Redis Client Error', err));
 };
 
 module.exports = { redisClient, initRedis };
-// export { redisClient, initRedis };
