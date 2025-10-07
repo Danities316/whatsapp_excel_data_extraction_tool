@@ -1,7 +1,0 @@
-2025/09/26-18:47:14.962 b68 Reusing MANIFEST C:\Users\HP\OneDrive\Desktop\whatsapp-bot-2025\whatsapp-bot-project\.wwebjs_auth\RemoteAuth\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2025/09/26-18:47:14.986 b68 Recovering log #96
-2025/09/26-18:47:15.098 b68 Reusing old log C:\Users\HP\OneDrive\Desktop\whatsapp-bot-2025\whatsapp-bot-project\.wwebjs_auth\RemoteAuth\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000096.log 
-2025/09/26-18:47:15.098 b68 Delete type=2 #93
-2025/09/26-18:47:15.098 b68 Delete type=2 #94
-2025/09/26-18:47:15.098 b68 Delete type=2 #97
-2025/09/26-18:47:16.352 1ab0 Manual compaction at level-0 from '\x00\x1e\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x1f\x00\x00\x00' @ 0 : 0; will stop at (end)

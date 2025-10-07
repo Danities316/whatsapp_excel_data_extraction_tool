@@ -4,15 +4,15 @@ const { setTempData, getTempData } = require('../services/tempStoreService.js');
 
 const router = express.Router();
 
-const BOT_PHONE = process.env.BOT_PHONE || ''; 
+const BOT_PHONE = process.env.BOT_PHONE || '';
 
 // Helper function to create session key for phone correlation
 function createSessionKey(sessionId) {
-    return `session_${sessionId}`;
+  return `session_${sessionId}`;
 }
 
 function createPhoneSessionKey(phoneNumber) {
-    return `phone_session_${phoneNumber}`;
+  return `phone_session_${phoneNumber}`;
 }
 
 router.post('/initiate-chat',
@@ -29,7 +29,7 @@ router.post('/initiate-chat',
     const { companyId, imageUrl } = req.body;
     const sessionId = uuidv4();
     const timestamp = Date.now();
-    
+
     console.log('Received /api/initiate-chat request:', { companyId, imageUrl, sessionId, timestamp });
 
     try {
@@ -39,22 +39,22 @@ router.post('/initiate-chat',
         imageUrl,
         timestamp,
         sessionId,
-        status: 'pending' 
+        status: 'pending'
       };
-      
+
       // Store session data with 10-minute expiry (600 seconds)
       await setTempData(createSessionKey(sessionId), sessionData, 600);
       console.log('Storing session data:', { sessionId, data: sessionData });
       // Clean user message without any session ID
       const userMessage = "Hello, I am interested in your services for a move.";
-      
+
       const waLink = `https://wa.me/${BOT_PHONE.replace('+', '').replace(/\s/g, '')}?text=${encodeURIComponent(userMessage)}`;
 
       console.log(`Generated WhatsApp link: ${waLink}`);
       res.status(200).json({
         message: 'WhatsApp chat link generated successfully.',
         waLink,
-        sessionId 
+        sessionId
       });
     } catch (error) {
       console.error('Error in /api/initiate-chat:', error);
@@ -84,6 +84,7 @@ router.get('/chat-redirect', async (req, res) => {
     }
 
     // Generate clean WhatsApp link (no sessionId in text!)
+    // const userMessage = "Hello, I am interested in your service: ${serviceName}. Please send me details.";
     const userMessage = "Hello, I am interested in your services.";
     const waLink = `https://wa.me/${BOT_PHONE.replace('+', '').replace(/\s/g, '')}?text=${encodeURIComponent(userMessage)}`;
 
@@ -100,7 +101,7 @@ router.get('/session-status/:sessionId', async (req, res) => {
   try {
     const { sessionId } = req.params;
     const sessionData = await getTempData(createSessionKey(sessionId));
-    
+
     if (sessionData) {
       // Handle both string and object responses
       const data = typeof sessionData === 'string' ? JSON.parse(sessionData) : sessionData;

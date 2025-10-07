@@ -7,7 +7,7 @@ const { redisClient } = require('./src/config/redisClient.js');
 
 dotenv.config();
 const app = express();
-const PORT = 8888;
+const PORT = process.env.PORT || 8888;
 
 // =================================================================
 // Middleware Configuration
@@ -17,10 +17,10 @@ app.use(cors({ origin: '*' }));
 
 // Middleware for rate limiting
 const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, 
-    max: 100, 
-    standardHeaders: true, 
-    legacyHeaders: false, 
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
     message: 'Too many requests from this IP, please try again after 15 minutes.'
 });
 
