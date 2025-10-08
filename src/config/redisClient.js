@@ -5,12 +5,12 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const redisClient = createClient({
-  username: process.env.REDIS_USERNAME,
-  password: process.env.REDIS_PASSWORD,
-  socket: {
-    host: process.env.REDIS_URL,
-    port: Number(process.env.REDIS_PORT),
-  }
+    username: process.env.REDIS_USERNAME,
+    password: process.env.REDIS_PASSWORD,
+    socket: {
+        host: process.env.REDIS_URL,
+        port: Number(process.env.REDIS_PORT) || 13544,
+    }
 });
 
 
@@ -27,7 +27,7 @@ redisClient.on('connect', () => {
 redisClient.on('error', err => console.error('Redis Client Error', err));
 
 // ✅ export an init function (instead of calling it automatically)
- const initRedis = async () => {
+const initRedis = async () => {
     try {
         redisClient.on('error', (err) => {
             console.error('Redis Client Error:', err);
