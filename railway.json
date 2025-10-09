@@ -1,0 +1,9 @@
+{
+    "build": {
+        "nixpacks": {
+            "aptPackages": [
+                "libgobject-2.0-0"
+            ]
+        }
+    }
+}
