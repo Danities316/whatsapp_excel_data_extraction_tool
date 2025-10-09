@@ -1,0 +1,16 @@
+# Ignore Node.js dependencies (will be installed inside the container)
+node_modules
+
+# Ignore local configuration files
+.git
+.gitignore
+
+# Ignore local build artifacts
+dist
+build
+npm-debug.log*
+
+# Ignore any large/temporary files
+temp/
+*.log
+*.tmp

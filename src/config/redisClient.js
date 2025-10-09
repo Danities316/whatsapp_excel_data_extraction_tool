@@ -4,21 +4,21 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const redisClient = createClient({
-    username: process.env.REDIS_USERNAME,
-    password: process.env.REDIS_PASSWORD,
-    socket: {
-        host: process.env.REDIS_URL,
-        port: Number(process.env.REDIS_PORT) || 13544,
-    }
-});
+// const redisClient = createClient({
+//     username: process.env.REDIS_USERNAME,
+//     password: process.env.REDIS_PASSWORD,
+//     socket: {
+//         host: process.env.REDIS_URL,
+//         port: Number(process.env.REDIS_PORT) || 13544,
+//     }
+// });
 
 
 //upstash connection
-// const redisClient = createClient({
-//   url: process.env.REDIS_URL,
-//   // token: process.env.UPSTASH_REDIS_REST_TOKEN,
-// });
+const redisClient = createClient({
+    url: process.env.REDIS_URL,
+    // token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 redisClient.on('connect', () => {
     console.log('Redis client connecting...');
