@@ -108,6 +108,9 @@ mongoose.connect(process.env.MONGODB_URI)
         store: store,
         backupSyncIntervalMs: 300000,
       }),
+      puppeteer: {
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      },
     });
 
     client.on("qr", async (qr) => {
