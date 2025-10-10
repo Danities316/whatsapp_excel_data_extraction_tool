@@ -109,6 +109,7 @@ mongoose.connect(process.env.MONGODB_URI)
         backupSyncIntervalMs: 300000,
       }),
       puppeteer: {
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       },
     });
