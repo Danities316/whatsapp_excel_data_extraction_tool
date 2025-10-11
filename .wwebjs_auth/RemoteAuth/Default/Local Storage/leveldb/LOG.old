@@ -1,0 +1,6 @@
+2025/10/11-04:36:21.278 5e Reusing MANIFEST /app/.wwebjs_auth/RemoteAuth/Default/Local Storage/leveldb/MANIFEST-000001
+2025/10/11-04:36:21.280 5e Recovering log #4
+2025/10/11-04:36:21.280 5e Reusing old log /app/.wwebjs_auth/RemoteAuth/Default/Local Storage/leveldb/000004.log 
+2025/10/11-04:38:22.149 5c Level-0 table #8: started
+2025/10/11-04:38:22.151 5c Level-0 table #8: 13653 bytes OK
+2025/10/11-04:38:22.152 5c Delete type=0 #4

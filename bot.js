@@ -102,6 +102,15 @@ async function extractSessionFromMessage(msg) {
   return null;
 }
 
+process.on('unhandledRejection', (reason, promise) => {
+  if (reason && reason.message && reason.message.includes('Execution context was destroyed')) {
+    console.warn('⚠️ Puppeteer page reloaded — safe to ignore.');
+  } else {
+    console.error('Unhandled Rejection:', reason);
+  }
+});
+
+
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     const store = new MongoStore({ mongoose: mongoose });

@@ -9,6 +9,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8888;
 
+// fixes X-Forwarded-For warning
+app.set('trust proxy', 1);
+
 // =================================================================
 // Middleware Configuration
 // =================================================================
