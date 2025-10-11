@@ -7,7 +7,9 @@ const { MongoStore } = require('wwebjs-mongo');
 const dotenv = require("dotenv");
 const { initRedis, redisClient } = require('./src/config/redisClient.js');
 
+
 dotenv.config();
+
 
 const BOT_PHONE = process.env.BOT_PHONE || '';
 initRedis();
@@ -103,14 +105,26 @@ async function extractSessionFromMessage(msg) {
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     const store = new MongoStore({ mongoose: mongoose });
+    const isWindows = process.platform === 'win32';
+    const isDocker = process.env.DOCKER_ENV === 'true' || process.env.RAILWAY_ENVIRONMENT;
     const client = new Client({
       authStrategy: new RemoteAuth({
         store: store,
         backupSyncIntervalMs: 300000,
       }),
       puppeteer: {
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: true,
+        executablePath: isWindows
+          ? undefined // Let Puppeteer find Chrome automatically on Windows
+          : process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--no-zygote',
+          '--single-process',
+        ],
       },
     });
 
