@@ -175,6 +175,23 @@ mongoose.connect(process.env.MONGODB_URI)
         return;
       }
 
+      // --- SAFETY FILTERS ---
+      if (
+        msg.from === 'status@broadcast' ||       // WhatsApp status
+        msg.fromMe ||                            // messages from yourself
+        msg.author ||                            // messages sent in groups (have msg.author field)
+        msg.from.endsWith('@g.us')               // group chats
+      ) {
+        console.log(`Ignoring non-direct message: from=${msg.from}, author=${msg.author}`);
+        return;
+      }
+
+
+      // for debugging purposes only - This helps you confirm whether a single user message triggers multiple handlers.
+      console.log("💬 Message received from", msg.from)
+      const traceId = Date.now() + Math.random().toString(36).substring(2, 8);
+      console.log(`[${traceId}] Incoming message:`, msg.body);
+
       const phoneNumber = msg.from.replace('@c.us', '');
       // console.log(`Incoming message from ${phoneNumber}: ${msg.body}`);
 
@@ -268,10 +285,10 @@ mongoose.connect(process.env.MONGODB_URI)
         .replace(/Services Offered:/i, '*Services Offered:*')
         .replace(/Cost:/i, '*Cost:*')
         .replace(/Service Area:/i, '*Service Area:*')
-        .replace(/Note:/i, '*Note:*')
-        .replace(/How to Find Them/i, '*How to Find Them*')
-        .replace(/Search their name on Google/i, '• Search their name on *Google*')
-        .replace(/look them up on Facebook/i, 'look them up on *Facebook*')
+        // .replace(/Note:/i, '*Note:*')
+        // .replace(/How to Find Them/i, '*How to Find Them*')
+        // .replace(/Search their name on Google/i, '• Search their name on *Google*')
+        // .replace(/look them up on Facebook/i, 'look them up on *Facebook*')
         .replace(/!/g, '\n')
         .replace(/;/g, '\n');
 
