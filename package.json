@@ -6,7 +6,16 @@
     "start:api": "node index.js",
     "start:bot": "node bot.js",
     "start": "concurrently \"npm run start:api\" \"npm run start:bot\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/__tests__/**/*.[jt]s?(x)",
+      "**/?(*.)+(spec|test).[jt]s?(x)"
+    ],
+    "collectCoverage": true
   },
   "keywords": [],
   "author": "",
@@ -30,5 +39,9 @@
     "uuid": "^13.0.0",
     "whatsapp-web.js": "^1.34.1",
     "wwebjs-mongo": "^1.1.0"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "supertest": "^7.1.4"
   }
 }

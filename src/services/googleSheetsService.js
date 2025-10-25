@@ -12,10 +12,10 @@ const REQUIRED_FIELDS = ['ID', 'BRIDGE MESSAGE', 'COMPANY IMAGE', 'COMPANY', 'OW
  */
 
 function validateCompanyData(company) {
-    if (company['ID'] && company['BRIDGE MESSAGE'] && !company['COMPANY']) {
-        // console.warn(`company data found (ID). Data:`, company);
-        return true;
-    }
+    // if (company['ID'] && company['BRIDGE MESSAGE'] && !company['COMPANY']) {
+    //     // console.warn(`company data found (ID). Data:`, company);
+    //     return true;
+    // }
     for (const field of REQUIRED_FIELDS) {
         if (!company[field]) {
             console.warn(`Skipping invalid company row. Missing field: '${field}'. Data received:`, company);
@@ -36,15 +36,15 @@ async function getCompanyData(companyId) {
     try {
         const res = await sheets.spreadsheets.values.get({
             spreadsheetId: process.env.GOOGLE_SHEET_ID,
-            range: 'Helsinki!A:Z', 
+            range: 'Helsinki!A:Z',
         });
 
         const rows = res.data.values;
-        if (!rows || rows.length <= 1) { 
+        if (!rows || rows.length <= 1) {
             console.error('No company data found.');
             return null;
         }
-          
+
 
         const headers = rows[0];
         const idIndex = headers.indexOf('ID');
@@ -57,7 +57,7 @@ async function getCompanyData(companyId) {
 
         const companyRow = rows.slice(1).find(r => r[idIndex] === companyId);
         console.log(`Company row found: ${companyRow}`);
-        
+
         if (!companyRow) {
             console.error(`Company with ID "${companyId}" not found.`);
             return null;
@@ -67,11 +67,11 @@ async function getCompanyData(companyId) {
         const companyData = Object.fromEntries(
             headers.map((header, i) => [header, companyRow[i]])
         );
-        
+
         if (validateCompanyData(companyData)) {
             return companyData;
         }
-        
+
         return null;
 
     } catch (error) {
@@ -89,9 +89,9 @@ async function getAllCompanies() {
     try {
         const res = await sheets.spreadsheets.values.get({
             spreadsheetId: process.env.GOOGLE_SHEET_ID,
-            range: 'Helsinki!A:Z', 
+            range: 'Helsinki!A:Z',
         });
-        
+
         const rows = res.data.values;
         if (!rows || rows.length <= 1) {
             console.error('No company data found in the sheet.');
