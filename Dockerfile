@@ -31,7 +31,8 @@ COPY . .
 # STEP 6: Set the Puppeteer executable path (crucial fix)
 # This forces whatsapp-web.js (which uses puppeteer-core) to use the
 # system-installed Chromium that has all dependencies.
-ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
+# ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
+ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium-browser"
 
 # STEP 7: Set the default command to run both API and Bot
 # We use the 'start' script defined in package.json
