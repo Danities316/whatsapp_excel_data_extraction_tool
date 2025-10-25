@@ -37,5 +37,8 @@ ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
 # We use the 'start' script defined in package.json
 CMD [ "npm", "start" ]
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
+    CMD curl -f http://localhost:8888/ || exit 1
+
 # Expose the port (8888 from your index.js)
 EXPOSE 8888
