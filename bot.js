@@ -136,14 +136,20 @@ mongoose.connect(process.env.MONGODB_URI)
         executablePath: isWindows
           ? undefined
           : process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
-        args: [
+        rgs: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
           '--disable-gpu',
           '--no-zygote',
           '--single-process',
+          '--disable-extensions',
+          '--disable-software-rasterizer',
+          '--window-size=800,600',
+          '--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"',
         ],
+        ignoreHTTPSErrors: true,
+        protocolTimeout: 0,
       },
     });
 
