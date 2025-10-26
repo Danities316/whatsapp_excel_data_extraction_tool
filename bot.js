@@ -159,7 +159,6 @@ mongoose.connect(process.env.MONGODB_URI)
       takeoverOnConflict: true,
       restartOnAuthFail: true,
     });
-    console.log("Launching Chromium with flags:", client.options.puppeteer.args);
 
 
     client.on("qr", async (qr) => {
