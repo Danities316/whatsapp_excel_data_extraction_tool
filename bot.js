@@ -135,7 +135,7 @@ mongoose.connect(process.env.MONGODB_URI)
         headless: true,
         executablePath: isWindows
           ? undefined
-          : process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
+          : process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath(),
         rgs: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -152,6 +152,8 @@ mongoose.connect(process.env.MONGODB_URI)
         protocolTimeout: 0,
       },
     });
+    console.log("Launching Chromium with flags:", client.options.puppeteer.args);
+
 
     client.on("qr", async (qr) => {
       console.error("New QR generated → Clearing old Redis sessions...");
