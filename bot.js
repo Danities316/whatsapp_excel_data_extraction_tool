@@ -140,17 +140,24 @@ mongoose.connect(process.env.MONGODB_URI)
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
-          '--disable-gpu',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
           '--no-zygote',
+          '--disable-gpu',
+          '--disable-features=site-per-process',
           '--single-process',
           '--disable-extensions',
           '--disable-software-rasterizer',
           '--window-size=800,600',
-          '--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"',
+          '--use-gl=swiftshader',
+          '--mute-audio',
         ],
         ignoreHTTPSErrors: true,
         protocolTimeout: 0,
+        pipe: true, // helps avoid WebSocket disconnections
       },
+      takeoverOnConflict: true,
+      restartOnAuthFail: true,
     });
     console.log("Launching Chromium with flags:", client.options.puppeteer.args);
 
