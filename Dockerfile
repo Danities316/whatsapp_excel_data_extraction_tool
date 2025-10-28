@@ -1,29 +1,15 @@
 # STEP 1: Use a reliable base image
-# Node 22-slim is Debian-based and minimal, but allows us to add packages.
-FROM node:22-slim
+# Playwright images include Chromium and are compatible with puppeteer when you point to the Chromium executable.
+FROM mcr.microsoft.com/playwright:foca
 
-# STEP 2: Install required system packages for Puppeteer/Chromium
-# These packages include the missing libgobject-2.0-0 (part of libglib2.0-0)
-# and all other necessary headless dependencies.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    chromium \
-    # The essential packages for headless browsing:
-    libglib2.0-0 \
-    libnss3 \
-    libnspr4 \
-    libxss1 \
-    libdbus-1-3 \
-    # Clean up package lists to keep image size down
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Create app directory
+WORKDIR /usr/src/app
 
-# STEP 3: Set working directory
-WORKDIR /app
-
-# STEP 4: Copy package files and install Node dependencies
+# Copy package manifests first to leverage Docker cache for deps
 COPY package*.json ./
-RUN npm install --omit=dev
+
+# Install dependencies (this will also let playwright image keep browsers)
+RUN npm ci --unsafe-perm
 
 # STEP 5: Copy application files
 COPY . .
@@ -31,7 +17,7 @@ COPY . .
 # STEP 6: Set the Puppeteer executable path (crucial fix)
 # This forces whatsapp-web.js (which uses puppeteer-core) to use the
 # system-installed Chromium that has all dependencies.
-ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # STEP 7: Set the default command to run both API and Bot
 # We use the 'start' script defined in package.json

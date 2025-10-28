@@ -7,8 +7,7 @@
     "start:bot": "node bot.js",
     "start": "concurrently \"npm run start:api\" \"npm run start:bot\"",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "postinstall": "chmod +x deploy.sh && ./deploy.sh"
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
   },
   "jest": {
     "testEnvironment": "node",
