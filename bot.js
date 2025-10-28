@@ -133,9 +133,9 @@ mongoose.connect(process.env.MONGODB_URI)
       }),
       puppeteer: {
         headless: true,
-        executablePath: isWindows
-          ? undefined
-          : process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath(),
+        // executablePath: isWindows
+        //   ? undefined
+        //   : process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath(),
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
