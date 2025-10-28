@@ -5,7 +5,7 @@
   "scripts": {
     "start:api": "node index.js",
     "start:bot": "node bot.js",
-    "start": "concurrently \"npm run start:api\" \"npm run start:bot\""
+    "start": "npm run start:api & npm run start:bot & wait"
   },
   "jest": {
     "testEnvironment": "node",
@@ -20,7 +20,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "concurrently": "^9.2.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
