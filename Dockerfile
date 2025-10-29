@@ -1,30 +1,38 @@
-# STEP 1: Use a reliable base image
-# Playwright images include Chromium and are compatible with puppeteer when you point to the Chromium executable.
-FROM mcr.microsoft.com/playwright:foca
+# Use a stable Node.js image with root privileges for apt-get
+FROM node:20-slim
 
-# Create app directory
-WORKDIR /usr/src/app
+# Set the working directory for the application
+WORKDIR /app
 
-# Copy package manifests first to leverage Docker cache for deps
+# Install necessary system dependencies for Chromium and Node-Sass/Gyp (optional, but good practice)
+# We install the Chromium browser package explicitly here.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    chromium \
+    libnss3 \
+    libfontconfig1 \
+    curl \
+    git \
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy package.json and package-lock.json to leverage Docker cache
 COPY package*.json ./
 
-# Install dependencies (this will also let playwright image keep browsers)
-RUN npm ci --unsafe-perm
+# Install application dependencies
+RUN npm install
 
-# STEP 5: Copy application files
+# Copy the rest of the application code
 COPY . .
 
-# STEP 6: Set the Puppeteer executable path (crucial fix)
-# This forces whatsapp-web.js (which uses puppeteer-core) to use the
-# system-installed Chromium that has all dependencies.
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# CRITICAL: Set the Puppeteer executable path to the system-installed Chromium
+# This variable must be set inside the container environment.
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
+ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium
 
-# STEP 7: Set the default command to run both API and Bot
-# We use the 'start' script defined in package.json
-CMD [ "npm", "start" ]
-
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
-    CMD curl -f http://localhost:8888/ || exit 1
-
-# Expose the port (8888 from your index.js)
+# Expose the port your Express server runs on (from index.js, default 8888)
 EXPOSE 8888
+
+# Define the command to run your application when the container starts
+CMD [ "npm", "run", "start" ]
