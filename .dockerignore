@@ -1,16 +1,10 @@
-# Ignore Node.js dependencies (will be installed inside the container)
-node_modules
+# Dependencies
+node_modules/
 
-# Ignore local configuration files
+# Logs and temp files
+npm-debug.log
+.vscode/
+
+# Ignore development files
 .git
 .gitignore
-
-# Ignore local build artifacts
-dist
-build
-npm-debug.log*
-
-# Ignore any large/temporary files
-temp/
-*.log
-*.tmp
