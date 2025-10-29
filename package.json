@@ -5,8 +5,7 @@
   "scripts": {
     "start:api": "node index.js",
     "start:bot": "node bot.js",
-    "start": "npm run start:api & npm run start:bot & wait",
-    "postinstall": "sudo apt-get update && sudo apt-get install -y libnss3 libfontconfig curl && node ./node_modules/puppeteer/install.js"
+    "start": "npm run start:api & npm run start:bot & wait"
   },
   "jest": {
     "testEnvironment": "node",
