@@ -133,6 +133,7 @@ mongoose.connect(process.env.MONGODB_URI)
       }),
       puppeteer: {
         headless: true,
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome',
         // browserWSEndpoint: process.env.BROWSERLESS_WSE_ENDPOINT || 'ws://localhost:3000',
         // executablePath: isWindows
         //   ? undefined

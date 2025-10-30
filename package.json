@@ -5,7 +5,8 @@
   "scripts": {
     "start:api": "node index.js",
     "start:bot": "node bot.js",
-    "start": "npm run start:bot & npm run start:api"
+    "start": "npm run start:bot & npm run start:api",
+    "postinstall": "npx @puppeteer/browsers install chromium --path .cache/puppeteer"
   },
   "jest": {
     "testEnvironment": "node",
@@ -20,6 +21,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@puppeteer/browsers": "^2.10.12",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
