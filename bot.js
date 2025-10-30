@@ -132,8 +132,8 @@ mongoose.connect(process.env.MONGODB_URI)
         backupSyncIntervalMs: 300000,
       }),
       puppeteer: {
-        // headless: true,
-        browserWSEndpoint: process.env.BROWSERLESS_WSE_ENDPOINT || 'ws://localhost:3000',
+        headless: true,
+        // browserWSEndpoint: process.env.BROWSERLESS_WSE_ENDPOINT || 'ws://localhost:3000',
         // executablePath: isWindows
         //   ? undefined
         //   : process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath(),
@@ -185,6 +185,10 @@ mongoose.connect(process.env.MONGODB_URI)
         ...(await getAllKeys("phone_session_*"))
       ];
       for (const key of allKeys) await redisClient.del(key);
+    });
+
+    client.on('disconnected', (reason) => {
+      console.log('Client was disconnected!', reason);
     });
 
     client.on("ready", () => {
