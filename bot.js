@@ -132,10 +132,11 @@ mongoose.connect(process.env.MONGODB_URI)
         backupSyncIntervalMs: 300000,
       }),
       puppeteer: {
-        headless: true,
-        executablePath: isWindows
-          ? undefined
-          : process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath(),
+        // headless: true,
+        browserWSEndpoint: process.env.BROWSERLESS_WSE_ENDPOINT || 'ws://localhost:3000',
+        // executablePath: isWindows
+        //   ? undefined
+        //   : process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath(),
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
