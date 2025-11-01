@@ -1,3 +1,4 @@
+const path = require('path');
 const { Client, RemoteAuth, MessageMedia } = require("whatsapp-web.js");
 const qrcode = require('qrcode-terminal');
 const puppeteer = require('puppeteer');
