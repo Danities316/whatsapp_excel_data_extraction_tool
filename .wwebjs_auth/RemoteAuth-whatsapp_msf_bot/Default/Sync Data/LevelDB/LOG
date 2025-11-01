@@ -1,2 +1,2 @@
-2025/11/01-14:32:22.138 d06 Creating DB /home/danities/whatsapp_excel_data_extraction_tool/.wwebjs_auth/RemoteAuth-whatsapp_msf_bot/Default/Sync Data/LevelDB since it was missing.
-2025/11/01-14:32:22.160 d06 Reusing MANIFEST /home/danities/whatsapp_excel_data_extraction_tool/.wwebjs_auth/RemoteAuth-whatsapp_msf_bot/Default/Sync Data/LevelDB/MANIFEST-000001
+2025/11/01-14:51:32.264 e3a Creating DB /home/danities/whatsapp_excel_data_extraction_tool/.wwebjs_auth/RemoteAuth-whatsapp_msf_bot/Default/Sync Data/LevelDB since it was missing.
+2025/11/01-14:51:32.299 e3a Reusing MANIFEST /home/danities/whatsapp_excel_data_extraction_tool/.wwebjs_auth/RemoteAuth-whatsapp_msf_bot/Default/Sync Data/LevelDB/MANIFEST-000001

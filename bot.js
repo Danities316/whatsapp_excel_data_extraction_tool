@@ -24,7 +24,10 @@ const {
 } = require('./src/utils/helperFunctions.js');
 
 dotenv.config();
+
 const executablePath = puppeteer.executablePath();
+
+
 const BOT_PHONE = process.env.BOT_PHONE || '';
 initRedis();
 console.log('Redis client is connected and ready. ✅');
@@ -124,6 +127,7 @@ process.on('unhandledRejection', (reason, promise) => {
 // Init Mongo + WhatsApp client (same as before)
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
+
      console.log("MongoDB connected successfully. Session store is ready.");
     const store = new MongoStore({ mongoose: mongoose });
     const isWindows = process.platform === 'win32';
@@ -137,10 +141,14 @@ mongoose.connect(process.env.MONGODB_URI)
       puppeteer: {
         headless: true,
         executablePath: executablePath,
+
         // browserWSEndpoint: process.env.BROWSERLESS_WSE_ENDPOINT || 'ws://localhost:3000',
         // executablePath: isWindows
         //   ? undefined
-        //   : process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath(),
+        //   // browserWSEndpoint: process.env.BROWSERLESS_WSE_ENDPOINT || 'ws://localhost:3000',
+        //   // executablePath: isWindows
+        //   //   ? undefined
+        //   //   : process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath(),
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -156,6 +164,7 @@ mongoose.connect(process.env.MONGODB_URI)
           '--window-size=800,600',
           '--use-gl=swiftshader',
           '--mute-audio',
+          '--temp-dir=/tmp'
         ],
         ignoreHTTPSErrors: true,
         protocolTimeout: 0,
