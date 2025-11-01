@@ -137,11 +137,11 @@ mongoose.connect(process.env.MONGODB_URI)
       }),
       puppeteer: {
         headless: true,
-        executablePath: executablePath,
+        // executablePath: executablePath,
         //   // browserWSEndpoint: process.env.BROWSERLESS_WSE_ENDPOINT || 'ws://localhost:3000',
-        //   // executablePath: isWindows
-        //   //   ? undefined
-        //   //   : process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath(),
+        executablePath: isWindows
+          ? undefined
+          : process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -156,8 +156,7 @@ mongoose.connect(process.env.MONGODB_URI)
           '--disable-software-rasterizer',
           '--window-size=800,600',
           '--use-gl=swiftshader',
-          '--mute-audio',
-          '--temp-dir=/tmp',
+          '--mute-audio'
         ],
         ignoreHTTPSErrors: true,
         protocolTimeout: 0,
