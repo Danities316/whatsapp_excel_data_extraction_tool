@@ -11,6 +11,7 @@ const {
 const { getCompanyData } = require("./src/services/googleSheetsService.js");
 const mongoose = require("mongoose");
 const { MongoStore } = require('wwebjs-mongo');
+const puppeteer = require('puppeteer');
 const dotenv = require("dotenv");
 const { initRedis, redisClient } = require('./src/config/redisClient.js');
 
@@ -23,6 +24,7 @@ const {
 } = require('./src/utils/helperFunctions.js');
 
 dotenv.config();
+const executablePath = puppeteer.executablePath()
 
 const BOT_PHONE = process.env.BOT_PHONE || '';
 initRedis();
@@ -123,21 +125,23 @@ process.on('unhandledRejection', (reason, promise) => {
 // Init Mongo + WhatsApp client (same as before)
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
+    console.log("MongoDB connected successfully. Session store is ready.");
     const store = new MongoStore({ mongoose: mongoose });
     const isWindows = process.platform === 'win32';
     const isDocker = process.env.DOCKER_ENV === 'true' || process.env.RAILWAY_ENVIRONMENT;
     const client = new Client({
       authStrategy: new RemoteAuth({
         store: store,
+        // clientId: 'whatsapp_msf_bot',
         backupSyncIntervalMs: 300000,
       }),
       puppeteer: {
-        headless: true,
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome',
-        // browserWSEndpoint: process.env.BROWSERLESS_WSE_ENDPOINT || 'ws://localhost:3000',
-        // executablePath: isWindows
-        //   ? undefined
-        //   : process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath(),
+        //   headless: true,
+        executablePath: executablePath,
+        //   // browserWSEndpoint: process.env.BROWSERLESS_WSE_ENDPOINT || 'ws://localhost:3000',
+        //   // executablePath: isWindows
+        //   //   ? undefined
+        //   //   : process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath(),
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
