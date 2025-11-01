@@ -24,7 +24,7 @@ const {
 } = require('./src/utils/helperFunctions.js');
 
 dotenv.config();
-const executablePath = puppeteer.executablePath()
+// const executablePath = puppeteer.executablePath()
 
 const BOT_PHONE = process.env.BOT_PHONE || '';
 initRedis();
@@ -122,6 +122,9 @@ process.on('unhandledRejection', (reason, promise) => {
   }
 });
 
+
+const EXECUTABLE_PATH = path.join(__dirname, '.cache', 'puppeteer', 'chromium', 'linux-1538368', 'chrome-linux', 'chrome');
+const executablePath = EXECUTABLE_PATH;
 // Init Mongo + WhatsApp client (same as before)
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
