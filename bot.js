@@ -132,11 +132,11 @@ mongoose.connect(process.env.MONGODB_URI)
     const client = new Client({
       authStrategy: new RemoteAuth({
         store: store,
-        // clientId: 'whatsapp_msf_bot',
+        clientId: 'whatsapp_msf_bot',
         backupSyncIntervalMs: 300000,
       }),
       puppeteer: {
-        //   headless: true,
+        headless: true,
         executablePath: executablePath,
         //   // browserWSEndpoint: process.env.BROWSERLESS_WSE_ENDPOINT || 'ws://localhost:3000',
         //   // executablePath: isWindows
