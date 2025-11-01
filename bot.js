@@ -157,6 +157,7 @@ mongoose.connect(process.env.MONGODB_URI)
           '--window-size=800,600',
           '--use-gl=swiftshader',
           '--mute-audio',
+          '--temp-dir=/tmp'
         ],
         ignoreHTTPSErrors: true,
         protocolTimeout: 0,
