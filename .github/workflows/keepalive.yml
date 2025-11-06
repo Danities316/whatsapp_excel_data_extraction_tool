@@ -1,0 +1,16 @@
+name: Keep VPS Alive
+
+on:
+  schedule:
+    - cron: "0 * * * *"  # runs every hour
+  workflow_dispatch:      # allows you to run manually if needed
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake VPS
+        run: |
+          echo "Pinging your VPS to keep it awake..."
+          curl -s http://20.164.0.179:8888 > /dev/null 2>&1 || true
+
