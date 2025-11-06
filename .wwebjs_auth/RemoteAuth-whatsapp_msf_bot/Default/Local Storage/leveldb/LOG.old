@@ -1,2 +1,2 @@
-2025/11/01-15:15:41.374 44cc Creating DB C:\Users\HP\OneDrive\Desktop\whatsapp-bot-2025\whatsapp_excel_data_extraction_tool\.wwebjs_auth\RemoteAuth-whatsapp_msf_bot\Default\Local Storage\leveldb since it was missing.
-2025/11/01-15:15:41.384 44cc Reusing MANIFEST C:\Users\HP\OneDrive\Desktop\whatsapp-bot-2025\whatsapp_excel_data_extraction_tool\.wwebjs_auth\RemoteAuth-whatsapp_msf_bot\Default\Local Storage\leveldb/MANIFEST-000001
+2025/11/03-05:39:54.767 169e Creating DB /home/danities/whatsapp_excel_data_extraction_tool/.wwebjs_auth/RemoteAuth-whatsapp_msf_bot/Default/Local Storage/leveldb since it was missing.
+2025/11/03-05:39:54.789 169e Reusing MANIFEST /home/danities/whatsapp_excel_data_extraction_tool/.wwebjs_auth/RemoteAuth-whatsapp_msf_bot/Default/Local Storage/leveldb/MANIFEST-000001

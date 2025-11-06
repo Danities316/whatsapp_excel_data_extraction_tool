@@ -13,7 +13,7 @@ module.exports = {
     },
     {
       name: 'whatsapp-bot',
-      script: 'bot.js',
+      script: 'botss.js',
       // BOT Logs
       out_file: './logs/bot-out.log',
       error_file: './logs/bot-error.log',

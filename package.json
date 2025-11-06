@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start:api": "node index.js",
+    "start:dev": "node start.js",
     "start:bot": "node bot.js",
     "start": "npm run start:bot & npm run start:api",
     "postinstall": "npx @puppeteer/browsers install chromium --path .cache/puppeteer"

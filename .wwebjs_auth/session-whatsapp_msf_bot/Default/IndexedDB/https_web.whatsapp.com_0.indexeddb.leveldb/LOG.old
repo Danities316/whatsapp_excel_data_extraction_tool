@@ -1,0 +1,19 @@
+2025/11/05-09:05:28.456 11a3 Reusing MANIFEST /home/danities/whatsapp_excel_data_extraction_tool/.wwebjs_auth/session-whatsapp_msf_bot/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/11/05-09:05:28.457 11a3 Recovering log #213
+2025/11/05-09:05:28.474 11a3 Reusing old log /home/danities/whatsapp_excel_data_extraction_tool/.wwebjs_auth/session-whatsapp_msf_bot/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/000213.log 
+2025/11/05-09:05:30.237 11aa Level-0 table #221: started
+2025/11/05-09:05:30.259 11aa Level-0 table #221: 1222135 bytes OK
+2025/11/05-09:05:30.270 11aa Delete type=0 #213
+2025/11/05-09:05:30.270 11bf Manual compaction at level-0 from '\x00+\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00,\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/11/05-09:05:31.646 11a5 Compacting 1@1 + 4@2 files
+2025/11/05-09:05:31.732 11a5 Generated table #222@1: 43518 keys, 2204726 bytes
+2025/11/05-09:05:31.858 11a5 Generated table #223@1: 47557 keys, 2211631 bytes
+2025/11/05-09:05:31.903 11a5 Generated table #224@1: 24540 keys, 2167560 bytes
+2025/11/05-09:05:31.973 11a5 Generated table #225@1: 53593 keys, 1010596 bytes
+2025/11/05-09:05:31.973 11a5 Compacted 1@1 + 4@2 files => 7594513 bytes
+2025/11/05-09:05:31.978 11a5 compacted to: files[ 0 0 4 0 0 0 0 ]
+2025/11/05-09:05:31.978 11a5 Delete type=2 #218
+2025/11/05-09:05:31.978 11a5 Delete type=2 #217
+2025/11/05-09:05:31.978 11a5 Delete type=2 #221
+2025/11/05-09:05:31.979 11a5 Delete type=2 #216
+2025/11/05-09:05:31.979 11a5 Delete type=2 #215
