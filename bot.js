@@ -1,5 +1,7 @@
+const path = require('path');
 const { Client, RemoteAuth, MessageMedia } = require("whatsapp-web.js");
 const qrcode = require('qrcode-terminal');
+const puppeteer = require('puppeteer');
 const {
   getTempData,
   setTempData,
@@ -11,7 +13,6 @@ const {
 const { getCompanyData } = require("./src/services/googleSheetsService.js");
 const mongoose = require("mongoose");
 const { MongoStore } = require('wwebjs-mongo');
-const puppeteer = require('puppeteer');
 const dotenv = require("dotenv");
 const { initRedis, redisClient } = require('./src/config/redisClient.js');
 
@@ -24,6 +25,9 @@ const {
 } = require('./src/utils/helperFunctions.js');
 
 dotenv.config();
+
+// const executablePath = puppeteer.executablePath()
+
 const executablePath = puppeteer.executablePath()
 
 const BOT_PHONE = process.env.BOT_PHONE || '';
@@ -112,6 +116,9 @@ async function extractSessionFromMessage(msg) {
 
   return null;
 }
+const chromiumPath = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser';
+console.log(`🧭 Using Chromium path: ${chromiumPath}`)
+
 
 // Handle unhandledRejection for puppeteer reload noise
 process.on('unhandledRejection', (reason, promise) => {
@@ -124,8 +131,42 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Init Mongo + WhatsApp client (same as before)
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
+  .then(async () => {
+
     console.log("MongoDB connected successfully. Session store is ready.");
+    // CHECK IF SESSION EXISTS IN DB
+    // CHECK ALL COLLECTIONS
+    const collections = await mongoose.connection.db.listCollections().toArray();
+    console.log("📦 Available collections:", collections.map(c => c.name));
+
+    // CHECK FOR REMOTE AUTH COLLECTIONS
+    const remoteAuthCollections = collections.filter(c =>
+      c.name.includes('RemoteAuth') || c.name.includes('whatsapp')
+    );
+    console.log("🔍 RemoteAuth collections:", remoteAuthCollections.map(c => c.name));
+
+    // CHECK CHUNKS COLLECTION
+    try {
+      const chunksCollection = mongoose.connection.collection('whatsapp-RemoteAuth-whatsapp_msf_bot.chunks');
+      const chunkCount = await chunksCollection.countDocuments();
+      console.log(`✅ Found ${chunkCount} chunks in session storage`);
+
+      // Check if files collection exists
+      const filesCollection = mongoose.connection.collection('whatsapp-RemoteAuth-whatsapp_msf_bot.files');
+      const fileCount = await filesCollection.countDocuments();
+      console.log(`📄 Found ${fileCount} file(s) in session metadata`);
+
+      if (fileCount > 0) {
+        const latestFile = await filesCollection.findOne({}, { sort: { uploadDate: -1 } });
+        console.log("📅 Latest session upload date:", latestFile?.uploadDate);
+        console.log("🆔 Session file ID:", latestFile?._id);
+      }
+    } catch (err) {
+      console.error("❌ Error checking chunks:", err.message);
+    }
+
+
+
     const store = new MongoStore({ mongoose: mongoose });
     const isWindows = process.platform === 'win32';
     const isDocker = process.env.DOCKER_ENV === 'true' || process.env.RAILWAY_ENVIRONMENT;
@@ -136,12 +177,11 @@ mongoose.connect(process.env.MONGODB_URI)
         backupSyncIntervalMs: 300000,
       }),
       puppeteer: {
-        headless: true,
+        headless: 'new',
         // executablePath: executablePath,
-        //   // browserWSEndpoint: process.env.BROWSERLESS_WSE_ENDPOINT || 'ws://localhost:3000',
-        executablePath: isWindows
-          ? undefined
-          : process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
+        executablePath: chromiumPath,
+        // browserWSEndpoint: process.env.BROWSERLESS_WSE_ENDPOINT,
+
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -158,6 +198,7 @@ mongoose.connect(process.env.MONGODB_URI)
           '--use-gl=swiftshader',
           '--mute-audio'
         ],
+        dumpio: true,
         ignoreHTTPSErrors: true,
         protocolTimeout: 0,
         pipe: true, // helps avoid WebSocket disconnections
@@ -195,6 +236,16 @@ mongoose.connect(process.env.MONGODB_URI)
     client.on('disconnected', (reason) => {
       console.log('Client was disconnected!', reason);
     });
+
+    client.on('remote_session_saved', () => {
+      console.log('💾 Remote session saved to Mongo.');
+    });
+
+    client.on('remote_session_restored', () => {
+      console.log('♻️ Remote session restored from Mongo.');
+    });
+
+
 
     client.on("ready", () => {
       console.log("WhatsApp bot client is ready!");
