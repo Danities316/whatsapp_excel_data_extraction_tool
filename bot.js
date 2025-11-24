@@ -1,7 +1,5 @@
-const path = require('path');
-const { Client, RemoteAuth, MessageMedia } = require("whatsapp-web.js");
+const { Client, LocalAuth, RemoteAuth, MessageMedia } = require("whatsapp-web.js");
 const qrcode = require('qrcode-terminal');
-const puppeteer = require('puppeteer');
 const {
   getTempData,
   setTempData,
@@ -13,6 +11,7 @@ const {
 const { getCompanyData } = require("./src/services/googleSheetsService.js");
 const mongoose = require("mongoose");
 const { MongoStore } = require('wwebjs-mongo');
+const puppeteer = require('puppeteer');
 const dotenv = require("dotenv");
 const { initRedis, redisClient } = require('./src/config/redisClient.js');
 
@@ -26,15 +25,11 @@ const {
 
 dotenv.config();
 
-// const executablePath = puppeteer.executablePath()
-
-const executablePath = puppeteer.executablePath()
-
 const BOT_PHONE = process.env.BOT_PHONE || '';
 initRedis();
 console.log('Redis client is connected and ready. ✅');
 
-// Helper utilities (kept from original)
+// Helper utilities
 function normalizePhoneNumber(phoneNumber) {
   let cleaned = phoneNumber.replace(/\D/g, '');
   if (cleaned.startsWith('0')) {
@@ -71,7 +66,6 @@ async function findSessionByPhoneAndTime(phoneNumber, maxAgeMinutes = 10) {
 
         if (sessionData) {
           const data = typeof sessionData === 'string' ? JSON.parse(sessionData) : sessionData;
-          // Defensive: ensure timestamp exists
           if (!data.timestamp) continue;
 
           const sessionAge = currentTime - data.timestamp;
@@ -116,11 +110,7 @@ async function extractSessionFromMessage(msg) {
 
   return null;
 }
-const chromiumPath = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser';
-console.log(`🧭 Using Chromium path: ${chromiumPath}`)
 
-
-// Handle unhandledRejection for puppeteer reload noise
 process.on('unhandledRejection', (reason, promise) => {
   if (reason && reason.message && reason.message.includes('Execution context was destroyed')) {
     console.warn('⚠️ Puppeteer page reloaded — safe to ignore.');
@@ -129,29 +119,28 @@ process.on('unhandledRejection', (reason, promise) => {
   }
 });
 
-// Init Mongo + WhatsApp client (same as before)
-mongoose.connect(process.env.MONGODB_URI)
+// Init Mongo + WhatsApp client
+mongoose.connect(process.env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 60000,
+  socketTimeoutMS: 60000,
+})
   .then(async () => {
-
     console.log("MongoDB connected successfully. Session store is ready.");
-    // CHECK IF SESSION EXISTS IN DB
-    // CHECK ALL COLLECTIONS
+
+    // DETAILED SESSION CHECK
     const collections = await mongoose.connection.db.listCollections().toArray();
     console.log("📦 Available collections:", collections.map(c => c.name));
 
-    // CHECK FOR REMOTE AUTH COLLECTIONS
     const remoteAuthCollections = collections.filter(c =>
       c.name.includes('RemoteAuth') || c.name.includes('whatsapp')
     );
     console.log("🔍 RemoteAuth collections:", remoteAuthCollections.map(c => c.name));
 
-    // CHECK CHUNKS COLLECTION
     try {
       const chunksCollection = mongoose.connection.collection('whatsapp-RemoteAuth-whatsapp_msf_bot.chunks');
       const chunkCount = await chunksCollection.countDocuments();
       console.log(`✅ Found ${chunkCount} chunks in session storage`);
 
-      // Check if files collection exists
       const filesCollection = mongoose.connection.collection('whatsapp-RemoteAuth-whatsapp_msf_bot.files');
       const fileCount = await filesCollection.countDocuments();
       console.log(`📄 Found ${fileCount} file(s) in session metadata`);
@@ -160,28 +149,47 @@ mongoose.connect(process.env.MONGODB_URI)
         const latestFile = await filesCollection.findOne({}, { sort: { uploadDate: -1 } });
         console.log("📅 Latest session upload date:", latestFile?.uploadDate);
         console.log("🆔 Session file ID:", latestFile?._id);
+        console.log("📏 Session file length:", latestFile?.length, "bytes");
       }
     } catch (err) {
       console.error("❌ Error checking chunks:", err.message);
     }
 
-
-
     const store = new MongoStore({ mongoose: mongoose });
+
+    // Test session extraction BEFORE initializing client
+    console.log("\n🔄 Testing session extraction...");
+    try {
+      const sessionExists = await store.sessionExists({ session: 'whatsapp_msf_bot' });
+      console.log("Session exists in store:", sessionExists);
+
+      if (sessionExists) {
+        console.log("Attempting to extract session...");
+        const extractedSession = await store.extract({ session: 'whatsapp_msf_bot' });
+        if (extractedSession) {
+          console.log("✅ Session extraction SUCCESSFUL!");
+          console.log("Session data length:", extractedSession.length);
+        } else {
+          console.log("⚠️ Session exists but extraction returned null/empty");
+        }
+      } else {
+        console.log("⚠️ No session found - will need to scan QR code");
+      }
+    } catch (extractErr) {
+      console.error("❌ Session extraction test FAILED:", extractErr.message);
+      console.log("This means the bot will request a new QR code");
+    }
+
     const isWindows = process.platform === 'win32';
-    const isDocker = process.env.DOCKER_ENV === 'true' || process.env.RAILWAY_ENVIRONMENT;
     const client = new Client({
-      authStrategy: new RemoteAuth({
-        store: store,
-        clientId: 'whatsapp_msf_bot',
-        backupSyncIntervalMs: 300000,
+      authStrategy: new LocalAuth({
+        clientId: 'whatsapp_msf_bot'
       }),
       puppeteer: {
-        headless: 'new',
-        // executablePath: executablePath,
-        executablePath: chromiumPath,
-        // browserWSEndpoint: process.env.BROWSERLESS_WSE_ENDPOINT,
-
+        headless: true,
+        executablePath: isWindows
+          ? undefined
+          : process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -190,110 +198,92 @@ mongoose.connect(process.env.MONGODB_URI)
           '--no-first-run',
           '--no-zygote',
           '--disable-gpu',
-          '--disable-features=site-per-process',
           '--single-process',
           '--disable-extensions',
-          '--disable-software-rasterizer',
-          '--window-size=800,600',
-          '--use-gl=swiftshader',
-          '--mute-audio'
+          '--window-size=800,600'
         ],
-        dumpio: true,
         ignoreHTTPSErrors: true,
-        protocolTimeout: 0,
-        pipe: true, // helps avoid WebSocket disconnections
+        protocolTimeout: 240000, // 4 minutes
+        pipe: true,
       },
       takeoverOnConflict: true,
-      restartOnAuthFail: true,
+      restartOnAuthFail: false,
     });
 
+    // Enhanced event listeners
+    client.on('remote_session_saved', () => {
+      console.log('✅ Remote session successfully saved to MongoDB');
+    });
+
+    client.on('loading_screen', (percent, message) => {
+      console.log(`⏳ Loading WhatsApp Web: ${percent}% - ${message}`);
+    });
 
     client.on("qr", async (qr) => {
-      console.error("New QR generated → Clearing old Redis sessions...");
-      const keys = await getAllKeys('session_*');
-      for (const key of keys) await redisClient.del(key);
-
-      const phoneKeys = await getAllKeys('phone_session_*');
-      for (const key of phoneKeys) await redisClient.del(key);
-
+      console.error("\n⚠️ QR Code requested - session restore FAILED");
+      console.error("Reasons this happens:");
+      console.error("1. First time setup (no session exists yet) ✓");
+      console.error("2. Session expired on WhatsApp (>14 days inactive)");
+      console.error("3. Session corrupted in MongoDB");
+      console.error("4. Network timeout during session restore");
+      console.error("\n📱 Scan QR code to authenticate:\n");
       qrcode.generate(qr, { small: true });
     });
 
     client.on("authenticated", () => {
-      console.log("Authentication successful!");
+      console.log("✅ Authentication successful! Session will be saved to MongoDB.");
     });
 
     client.on("auth_failure", async (msg) => {
-      console.error("Authentication failure:", msg);
-      console.error("Clearing Redis sessions...");
-      const allKeys = [
-        ...(await getAllKeys("session_*")),
-        ...(await getAllKeys("phone_session_*"))
-      ];
-      for (const key of allKeys) await redisClient.del(key);
+      console.error("❌ Authentication failure:", msg);
     });
 
     client.on('disconnected', (reason) => {
-      console.log('Client was disconnected!', reason);
+      console.log('⚠️ Client disconnected:', reason);
     });
-
-    client.on('remote_session_saved', () => {
-      console.log('💾 Remote session saved to Mongo.');
-    });
-
-    client.on('remote_session_restored', () => {
-      console.log('♻️ Remote session restored from Mongo.');
-    });
-
-
 
     client.on("ready", () => {
-      console.log("WhatsApp bot client is ready!");
+      console.log("\n✅ ========================================");
+      console.log("✅  WhatsApp Bot is READY and LISTENING");
+      console.log("✅ ========================================\n");
     });
 
-    // === MAIN MESSAGE HANDLER (merged & hardened) ===
+    // Message handler
     client.on('message', async (msg) => {
-      // ping
       if (msg.body === '!ping') {
         msg.reply('pong');
         return;
       }
 
-      // Safety filters (unchanged)
       if (
         msg.from === 'status@broadcast' ||
         msg.fromMe ||
         msg.author ||
         msg.from.endsWith('@g.us')
       ) {
-        console.log(`Ignoring non-direct message: from=${msg.from}, author=${msg.author}`);
         return;
       }
 
       const traceId = Date.now() + Math.random().toString(36).substring(2, 8);
-      console.log(`[${traceId}] 💬 Message received from ${msg.from} : ${String(msg.body || '').slice(0, 120)}`);
+      console.log(`[${traceId}] 💬 Message from ${msg.from}: ${String(msg.body || '').slice(0, 120)}`);
 
-      // --- iOS duplicate delivery protection (idempotency) ---
       const msgId = msg?.id?.id ?? null;
       if (msgId) {
         try {
           const isDup = await isDuplicateMessage(msgId);
           if (isDup) {
-            console.log(`[${traceId}] Duplicate message ignored msgId=${msgId}`);
+            console.log(`[${traceId}] Duplicate message ignored`);
             return;
           }
         } catch (err) {
-          // If duplicate check fails, continue (do not block conversation)
-          console.warn(`[${traceId}] Warning: isDuplicateMessage failed, continuing.`, err);
+          console.warn(`[${traceId}] isDuplicateMessage check failed, continuing.`);
         }
       }
 
-      // Normalize phone
       const phoneNumberRaw = String(msg.from).split('@')[0];
       const phoneNumber = normalizePhoneNumber(phoneNumberRaw);
       const phoneSessionKey = `phone_session_${phoneNumber}`;
 
-      // helper to extract mapping
       const extractSessionId = (raw) => {
         if (!raw) return null;
         if (typeof raw === 'string') return raw;
@@ -301,8 +291,6 @@ mongoose.connect(process.env.MONGODB_URI)
         return null;
       };
 
-      // --- If user directly messages the bot with no session, send fallback (old behavior) ---
-      // We'll check phone->session mapping first. If not found, we'll search pending sessions.
       let sessionData = null;
 
       try {
@@ -312,57 +300,38 @@ mongoose.connect(process.env.MONGODB_URI)
           const maybeSession = await getTempData(`session_${mappedSessionId}`);
           if (maybeSession && maybeSession.companyId) {
             sessionData = maybeSession;
-            console.log(`[${traceId}] Found existing mapped session ${mappedSessionId} for ${phoneNumber}`);
-          } else {
-            console.warn(`[${traceId}] Found phone_session mapping but session missing/invalid. mapped=${mappedSessionId}`);
+            console.log(`[${traceId}] Found mapped session ${mappedSessionId}`);
           }
-
-          // old rule: if in-progress states, ignore user message (do nothing)
-          // if (sessionData &&
-          //   (sessionData.status === 'bridge_sending' ||
-          //    sessionData.status === 'bridge_sent' ||
-          //    sessionData.status === 'response_sent')) {
-          //   console.log(`[${traceId}] Session ${sessionData.sessionId} already in-progress (status=${sessionData.status}). Ignoring.`);
-          //   return;
-          // }
 
           if (sessionData) {
             const status = sessionData.status;
 
             if (status === 'bridge_sending') {
-              console.log(`[${traceId}] Bridge is currently being sent for session ${sessionData.sessionId}.`);
               await msg.reply(
-                `🕓 We’re sending the company details for your previous request right now.\n` +
-                `Please hold on — you’ll receive the full information in just a moment. 🙏`
+                `🕐 We're sending the company details right now. Please hold on... 🙏`
               );
               return;
             }
 
             if (status === 'bridge_sent' && sessionData.responseScheduled) {
-              console.log(`[${traceId}] User ${phoneNumber} re-clicked while botResponse is pending for session ${sessionData.sessionId}.`);
               await msg.reply(
-                `⏳ Your request for *${sessionData.companyName || 'this company'}* is still being processed.\n` +
-                `You’ll receive the detailed response shortly. Please wait a few seconds 🙏`
+                `⏳ Your request for *${sessionData.companyName || 'this company'}* is being processed.\nYou'll receive details shortly 🙏`
               );
               return;
             }
 
             if (status === 'response_sent') {
-              console.log(`[${traceId}] Session ${sessionData.sessionId} already completed (response_sent).`);
               await msg.reply(
-                `✅ You already received full details for *${sessionData.companyName || 'this company'}*.\n` +
-                `If you’d like to explore other moving services, please return to our website and select another option 🚚✨`
+                `✅ You already received details for *${sessionData.companyName || 'this company'}*.\nVisit our website to explore other services 🚚`
               );
               return;
             }
           }
-
         }
       } catch (err) {
         console.error(`[${traceId}] Error reading phone->session mapping`, err);
       }
 
-      // If no mapping, attempt to claim a pending session (same as original)
       let sessionKey = null;
       let sessionId = null;
       let lockAcquired = false;
@@ -377,33 +346,25 @@ mongoose.connect(process.env.MONGODB_URI)
               const candidate = await getTempData(k);
               if (!candidate) continue;
               if (candidate.status !== 'pending') continue;
-              if ((now - (candidate.timestamp || 0)) > 10 * 60 * 1000) continue; // older than 10m skip
+              if ((now - (candidate.timestamp || 0)) > 10 * 60 * 1000) continue;
 
               const candidateSessionId = candidate.sessionId || k;
-
-              // Try lock to avoid race (iOS/dup handlers)
               const acquired = await acquireSessionLock(candidateSessionId);
-              if (!acquired) {
-                console.log(`[${traceId}] Could not acquire lock for ${candidateSessionId}, skipping candidate.`);
-                continue;
-              }
+              if (!acquired) continue;
 
-              // keep lock info
               lockAcquired = true;
               sessionKey = k;
               sessionId = candidateSessionId;
 
-              // Persist phone->session mapping & mark active
               await setTempData(phoneSessionKey, candidateSessionId, 600);
               candidate.phone = phoneNumber;
               candidate.status = 'active';
               await setTempData(k, candidate, 600);
 
               sessionData = candidate;
-              console.log(`[${traceId}] Claimed session ${sessionId} for ${phoneNumber}`);
+              console.log(`[${traceId}] Claimed session ${sessionId}`);
               break;
             } catch (e) {
-              console.warn(`[${traceId}] Error evaluating candidate session key ${k}`, e);
               continue;
             }
           }
@@ -415,93 +376,82 @@ mongoose.connect(process.env.MONGODB_URI)
         sessionId = sessionData.sessionId;
       }
 
-      // If after all that we still have no session -> fallback reply (old behavior preserved)
       if (!sessionData) {
         try {
-          // use old fallback logic but don't duplicate replies
           if (!(await hasFallbackReplied(phoneNumber))) {
             await markFallbackReplied(phoneNumber);
             await msg.reply(
               `This is the official contact line for www.movingservicefinland.com.\n` +
-              `It looks like you're trying to inquire about our services.\n` +
-              `Please visit our website to book, find, and compare prices.\n` +
-              `Thanks for reaching out!`
+              `Please visit our website to book and compare prices.\nThanks!`
             );
-          } else {
-            console.log(`[${traceId}] Fallback already sent recently to ${phoneNumber}; skipping.`);
           }
         } catch (err) {
-          console.warn(`[${traceId}] Error during fallback flow`, err);
+          console.warn(`[${traceId}] Fallback error`, err);
         }
         return;
       }
 
-      // Ensure sessionKey/sessionId are set
       if (!sessionId) sessionId = sessionData.sessionId || sessionKey;
       if (!sessionKey) sessionKey = `session_${sessionId}`;
 
-      // If lock not previously acquired (mapped session case), try to acquire now
       if (!lockAcquired) {
         try {
           lockAcquired = await acquireSessionLock(sessionId);
           if (!lockAcquired) {
-            console.log(`[${traceId}] Failed to acquire lock for session ${sessionId} (already claimed). Ignoring.`);
+            console.log(`[${traceId}] Failed to acquire lock, ignoring`);
             return;
           }
         } catch (err) {
-          console.warn(`[${traceId}] Error acquiring lock for session ${sessionId}`, err);
+          console.warn(`[${traceId}] Lock acquisition error`, err);
           return;
         }
       }
 
-      // Per-company completed_user check (NEW: allows contacting other companies quickly)
       const companyId = sessionData.companyId;
       const completedKeyForCompany = `completed_user_${phoneNumber}_${companyId}`;
       try {
         if (await getTempData(completedKeyForCompany)) {
-          // If the user already completed chat with this particular company, reply friendly and stop.
-          console.log(`[${traceId}] User ${phoneNumber} recently completed chat with company ${companyId}.`);
-          let companyName = '(this moving service)';
-          try { const cd = await getCompanyData(companyId); companyName = cd?.COMPANY || companyName; } catch (_) { }
+          let companyName = '(this service)';
+          try {
+            const cd = await getCompanyData(companyId);
+            companyName = cd?.COMPANY || companyName;
+          } catch (_) { }
           await msg.reply(
-            `👋 Hi again! You recently contacted *${companyName}* through MSF. ` +
-            `If you want to explore other moving services, please return to the website and choose another option. 🚚`
+            `👋 You recently contacted *${companyName}*. ` +
+            `Visit our website to explore other services 🚚`
           );
           try { await redisClient.del(`lock:${sessionId}`); } catch (_) { }
           return;
         }
       } catch (err) {
-        console.warn(`[${traceId}] Warning reading completed_key for company`, err);
+        console.warn(`[${traceId}] Completed check error`, err);
       }
 
-      // bridgeAlreadySent dedupe check (read-only)
       try {
         const alreadyBridge = await bridgeAlreadySent(sessionId);
         if (alreadyBridge) {
-          console.log(`[${traceId}] Bridge already sent for ${sessionId}; releasing lock and aborting.`);
+          console.log(`[${traceId}] Bridge already sent, aborting`);
           try { await redisClient.del(`lock:${sessionId}`); } catch (_) { }
           return;
         }
       } catch (err) {
-        console.warn(`[${traceId}] bridgeAlreadySent check failed for ${sessionId}`, err);
+        console.warn(`[${traceId}] bridgeAlreadySent check failed`, err);
       }
 
-      // Load companyData (unchanged)
       let companyData;
       try {
         companyData = await getCompanyData(sessionData.companyId);
         if (!companyData) {
-          await msg.reply('I am sorry, I cannot find the details for this company. Please try again later.');
+          await msg.reply('Sorry, cannot find company details. Please try again later.');
           try { await redisClient.del(`lock:${sessionId}`); } catch (_) { }
           return;
         }
       } catch (err) {
-        console.error(`[${traceId}] Error fetching company data for ${sessionData.companyId}`, err);
+        console.error(`[${traceId}] Error fetching company data`, err);
         try { await redisClient.del(`lock:${sessionId}`); } catch (_) { }
         return;
       }
 
-      // Format bridge message (same as old)
       const bridgeMsg = companyData['BRIDGE MESSAGE']?.trim() || '';
       const formattedBridgeMsg = bridgeMsg
         .replace(/MSF!/i, '*MSF!*')
@@ -512,29 +462,23 @@ mongoose.connect(process.env.MONGODB_URI)
         .replace(/!/g, '\n')
         .replace(/;/g, '\n');
 
-      // --- QUICK ACKNOWLEDGEMENT MESSAGE (immediate feedback to user) ---
       try {
         await msg.reply(
-          `✅ Got it! I’m fetching details for *${companyData?.COMPANY || 'your selected company'}*. Please hold on... 🚚💨`
-          // `✅ Got it! Please hold on while I prepare the moving service details for you. 🚚💨`
+          `✅ Fetching details for *${companyData?.COMPANY || 'your selected company'}*... 🚚💨`
         );
-        console.log(`[${traceId}] Sent quick acknowledgment to ${phoneNumber}`);
       } catch (err) {
-        console.warn(`[${traceId}] Failed to send quick acknowledgment message`, err);
+        console.warn(`[${traceId}] Quick ack failed`, err);
       }
 
-
-      // Mark status = bridge_sending BEFORE sending (old behavior)
       try {
         sessionData.status = 'bridge_sending';
         await setTempData(sessionKey, sessionData, 600);
       } catch (err) {
-        console.error(`[${traceId}] Failed to persist bridge_sending state, aborting to avoid dupes:`, err);
+        console.error(`[${traceId}] Failed to persist bridge_sending`, err);
         try { await redisClient.del(`lock:${sessionId}`); } catch (_) { }
         return;
       }
 
-      // Send the bridge (image or text) — same behavior with fallback
       try {
         if (formattedBridgeMsg) {
           if (sessionData.imageUrl) {
@@ -542,13 +486,12 @@ mongoose.connect(process.env.MONGODB_URI)
               const fetch = (await import('node-fetch')).default;
               const response = await fetch(sessionData.imageUrl);
               if (!response.ok) throw new Error(`Image fetch ${response.status}`);
-              // use arrayBuffer (no deprecation)
               const arrayBuf = await response.arrayBuffer();
               const buffer = Buffer.from(arrayBuf);
               const media = new MessageMedia('image/jpeg', buffer.toString('base64'), `company-${sessionData.companyId}.jpg`);
               await msg.reply(media, null, { caption: formattedBridgeMsg });
             } catch (err) {
-              console.error(`[${traceId}] Error fetching/sending bridge image, sending text instead:`, err);
+              console.error(`[${traceId}] Bridge image error, sending text`, err);
               await msg.reply(formattedBridgeMsg);
             }
           } else {
@@ -556,25 +499,22 @@ mongoose.connect(process.env.MONGODB_URI)
           }
         }
 
-        // After successful send: mark bridge_sent & responseScheduled (old behavior)
         sessionData.status = 'bridge_sent';
         sessionData.responseScheduled = true;
         await setTempData(sessionKey, sessionData, 600);
-        console.log(`[${traceId}] Bridge sent & session updated (bridge_sent + responseScheduled) for ${sessionId}`);
+        console.log(`[${traceId}] Bridge sent successfully`);
       } catch (err) {
-        console.error(`[${traceId}] Failed to send bridge, reverting session to pending:`, err);
+        console.error(`[${traceId}] Bridge send failed`, err);
         sessionData.status = 'pending';
         sessionData.responseScheduled = false;
-        try { await setTempData(sessionKey, sessionData, 600); } catch (e) { console.warn(e); }
+        try { await setTempData(sessionKey, sessionData, 600); } catch (e) { }
         try { await redisClient.del(`lock:${sessionId}`); } catch (_) { }
         return;
       }
 
-      // release lock early (we persist bridge_sent to prevent immediate duplicates)
-      try { await redisClient.del(`lock:${sessionId}`); } catch (err) { console.warn(`[${traceId}] Failed to release lock for ${sessionId}`, err); }
+      try { await redisClient.del(`lock:${sessionId}`); } catch (err) { }
 
-      // Construct botResponse (same as old)
-      const botResponse = `📍 *${companyData.COMPANY}*\n\n` +
+      const botResponse = `🏢 *${companyData.COMPANY}*\n\n` +
         `💰 *Service Rates*\n` +
         `• ${companyData['RATE & SERVICES  ( I )']}\n` +
         `• ${companyData['RATE & SERVICES  ( II )']}\n` +
@@ -597,33 +537,15 @@ mongoose.connect(process.env.MONGODB_URI)
         `${companyData['CONTACT METHOD']}\n\n` +
         `${companyData['THANK YOU MESSAGE']}`;
 
-      // persist responseScheduled defensively again
-      try {
-        sessionData.responseScheduled = true;
-        await setTempData(sessionKey, sessionData, 600);
-      } catch (err) {
-        console.warn(`[${traceId}] Warning: Could not persist responseScheduled flag`, err);
-      }
-
-      // Schedule botResponse (deduplicated, resilient)
       const BOT_DELAY_MS = Number(process.env.BOT_RESPONSE_DELAY_MS) || 30000;
       setTimeout(async () => {
         try {
-          // Defensive: read latest session state
           const latestSession = await getTempData(sessionKey);
-          if (!latestSession || !latestSession.responseScheduled) {
-            console.log(`[${traceId}] Response not scheduled or session missing for ${sessionId}; skipping botResponse.`);
-            return;
-          }
+          if (!latestSession || !latestSession.responseScheduled) return;
 
-          // If response already sent (flag) skip — read-only check
           const already = await botResponseAlreadySent(sessionId);
-          if (already) {
-            console.log(`[${traceId}] Bot response already sent earlier for ${sessionId}.`);
-            return;
-          }
+          if (already) return;
 
-          // Try to send botResponse (image or text)
           if (companyData['COMPANY IMAGE']) {
             try {
               const fetch = (await import('node-fetch')).default;
@@ -634,21 +556,19 @@ mongoose.connect(process.env.MONGODB_URI)
               const media = new MessageMedia('image/jpeg', buffer.toString('base64'), `${companyData.COMPANY}.jpg`);
               await msg.reply(media, null, { caption: botResponse });
             } catch (err) {
-              console.error(`[${traceId}] Error sending company image in botResponse; falling back to text`, err);
+              console.error(`[${traceId}] Company image error, fallback to text`, err);
               await msg.reply(botResponse);
             }
           } else {
             await msg.reply(botResponse);
           }
 
-          // Only after successful send: mark bot response sent
           try {
-            await markBotResponseSent(sessionId); // helper sets bot_response_sent_<sessionId>
+            await markBotResponseSent(sessionId);
           } catch (err) {
-            console.warn(`[${traceId}] Warning: markBotResponseSent failed`, err);
+            console.warn(`[${traceId}] markBotResponseSent failed`, err);
           }
 
-          // Small grace wait and then preserve session for audit & cleanup phone->session mapping
           await new Promise(r => setTimeout(r, 1500));
 
           try {
@@ -656,31 +576,29 @@ mongoose.connect(process.env.MONGODB_URI)
             if (latest) {
               latest.status = 'response_sent';
               latest.completedAt = Date.now();
-              // keep session around for audit (30 minutes)
               await setTempData(sessionKey, latest, 1800);
             }
           } catch (err) {
-            console.warn(`[${traceId}] Could not update session post-response`, err);
+            console.warn(`[${traceId}] Post-response update failed`, err);
           }
 
-          // Remove phone->session mapping and set completed_user per-company TTL
           try {
             await deleteTempData(phoneSessionKey);
-            const COMPLETED_TTL = Number(process.env.COMPLETED_USER_TTL) || 3600; // default 1 hour
+            const COMPLETED_TTL = Number(process.env.COMPLETED_USER_TTL) || 3600;
             await setTempData(`completed_user_${phoneNumber}_${companyId}`, true, COMPLETED_TTL);
-            console.log(`[${traceId}] ✅ BotResponse sent & session marked completed for ${sessionId}`);
+            console.log(`[${traceId}] ✅ Response completed`);
           } catch (err) {
-            console.warn(`[${traceId}] Cleanup after botResponse failed for ${sessionId}`, err);
+            console.warn(`[${traceId}] Cleanup failed`, err);
           }
 
         } catch (err) {
-          console.error(`[${traceId}] ❌ Error in scheduled botResponse for ${sessionId}:`, err);
+          console.error(`[${traceId}] ❌ Scheduled response error:`, err);
         }
       }, BOT_DELAY_MS);
 
-    }); // end client.on('message')
+    });
 
-
+    console.log("\n🚀 Initializing WhatsApp client...");
     client.initialize();
   })
   .catch(err => {
